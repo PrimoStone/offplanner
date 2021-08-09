@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+        <link href="/static/styles.css" rel="stylesheet">
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+         <!--<script src="https://code.jquery.com/jquery-1.12.4.js"></script>-->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $( function() {
+            $( "#datepicker" ).datepicker();
+        } );
+    </script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap" rel="stylesheet">
+        <title>OFF Planner</title>
+
+    </head>
+    <body>
+        <div class="container">
+
+            <div class="row nav">
+
+<!--Menu-->
+
+
+                <div class="menu col-2">
+                  <button class="menubtn">MENU</button>
+                  <div class="dropdown-menu">
+
+                    <!--Display menu items depending on login status-->
+
+                    {% if session["user_id"] !=NULL %}
+                        <a href="/">Home</a>
+                        <a href="/addperson">Add person</a>
+                        <!--<a href="#">Add company</a>-->
+                        <a href="/logout">Logout</a>
+                    {%else%}
+                        <a href="/">Home</a>
+                        <a href="/login">Login</a>
+                        <a href="/registerr">Register</a>
+                    {%endif%}
+                  </div>
+                </div>
+                <div class="logo col-8">
+
+   OFF PLANNER
+
+                </div>
+                {% if session["user_id"] !=NULL %}
+                    <div class="login col-1">
+                    </div>
+                {%else%}
+                    <div class="logout col-1">
+                    </div>
+                {%endif%}
+            </div>
+
+        </div>
+<hr scope="row"></hr>
+        <div class="container">
+            <div class="section info">
+                {%for row in rows%}
+                <h5>
+                    {{row["Company"]}}
+                </h5>
+                <h6>
+                    {{row["Patternname"]}} Shift  &nbsp;<span style="color:red;">{{row["Shift"]}}</span>
+
+                </h6>
+            </div>
+
+                <div class="section">
+                <table>
+                    <thead>
+                        <tr>
+                            <div class=" cal-nav">
+                <h5>
+                    <form action="/"method="POST" name="direction">
+                        <button type="submit" name="direction" value="Prev" placeholder="Prev" class="left"><</button>
+                             {{ c_month }}
+                        <button type="submit" name="direction" value="Next" placeholder="Next" class="right"> > </button>
+                    </form>
+                </h5>
+                {%endfor%}
+            </div>
+                        </tr>
+                        <tr>
+
+                        <!--itarate for weekdays name in table header-->
+                        {% for wday in range(0,7) %}
+                                <td >
+                                    {{day_name[wday]}}
+                                </td>
+                        {% endfor%}
+                            </tr>
+                    </thead>
+                    <hr scope="row"></hr>
+                    <tbody>
+
+                        {% for week in range(0,cal_rows-1)%}
+                        <tr>
+                            {% for day in range(0,7)%}
+                            <td
+                            {% for row in rows %}
+                            {% if row[(((pattern_s|int)+day+7*week)%row["Shiftpattern"]+1) |string] == "N" and ((first_day+day+1)+(7*week)) == (c_day) and vector == 0 %}
+
+
+
+                                class="today night"
+                                {%elif row[(((pattern_s|int)+day+7*week)%row["Shiftpattern"]+1) |string] == "N" %}
+                                    class="night"
+
+                                    {%elif row[(((pattern_s|int)+day+7*week)%row["Shiftpattern"]+1) |string] == "D" and ((first_day+day+1)+(7*week)) == (c_day) and vector == 0 %}
+                                                class="today day"
+
+                                        {%elif row[(((pattern_s|int)+day+7*week)%row["Shiftpattern"]+1) |string] == "D" %}
+                                                    class="day"
+                                            {%elif ((first_day+day+1)+(7*week)) == (c_day) and vector == 0%}
+                                                class="today"
+
+
+
+                            {%endif%}
+
+
+                            >
+
+                                {% if (first_day+day+1)+(7*week)<1 %}
+                                {{(first_day+day+1)+(7*week)+previous}}
+                                {%elif (first_day+day+1)+(7*week) <= num_d%}
+                                    {{(first_day+day+1)+(7*week)}}
+                                    {%else%}
+                                        {{(first_day+day+1)+(7*week)-num_d}}
+                                {%endif%}
+{%endfor%}
+                            </td>
+
+
+                            {% endfor %}
+
+                        </tr>
+
+
+                        {% endfor%}
+                    </tbody>
+                </table>
+
+
+            </div>
+
+
+            <div class="section">
+                <form  action="/switch" method="POST" >
+                    {% for i in  shifts_l %}
+                    {%if session["shift"] == i %}
+
+                        <button type="submit" name="shift" value="{{i}}" class="shift-but-active">{{i}}</button>
+                    {%else%}
+                    <button type="submit" name="shift" value="{{i}}" class="shift-but">{{i}}</button>
+                    {%endif%}
+
+                    {% endfor %}
+
+                </form>
+            </div>
+            <div class="section">
+                <form  action="/pattern" method="POST">
+
+                    <select name="Id"  onchange="this.form.submit()"  class="select-form">
+                 <option value="">Change plan</option>
+{% for row in shifts %}
+
+                 <option value="{{row["Id"]}}">{{row["Company"]}} {{row["Patternname"]}}</option>
+
+
+{%endfor%}
+                    </select>
+
+                </form>
+
+            </div>
+
+             {% if session["user_id"] !=NULL %}
+             <div class="section">
+                <form  action="/friends" method="POST">
+
+                    <select name="friends"  onchange="this.form.submit()"  class="select-form">
+                 <option value="">Select Person</option>
+{% for row in friends %}
+
+                 <option value="{{row["Shift_Id"]}}">{{row["Name"]}} {{row["Nick"]}}</option>
+
+{%endfor%}
+                    </select>
+
+                </form>
+
+            </div>
+            {%endif%}
+        </div>
+
+
+
+        <script>
+        function myFunction() {
+          var x = document.getElementById("myTopnav");
+          if (x.className === "topnav") {
+            x.className += " responsive";
+          } else {
+            x.className = "topnav";
+          }
+        }
+        </script>
+
+    </body>
+</html>
